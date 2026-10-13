@@ -1,6 +1,6 @@
-# ATELIER V — Production-Grade Full-Stack Luxury E-Commerce Platform
+# AB Avenue — Production-Grade Full-Stack Luxury E-Commerce Platform
 
-A production-grade e-commerce platform built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, **Framer Motion**, **Supabase** (Auth + Database + Storage), and **Razorpay** payments.
+A production-grade e-commerce platform built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, **Framer Motion**, **Supabase** (Auth + Database + Storage), and **EasyPaisa** payments.
 
 Inspired by the visual minimalism and tactile precision of Apple Store, Aesop, and Mr Porter.
 
