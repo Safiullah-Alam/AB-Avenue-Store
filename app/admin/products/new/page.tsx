@@ -99,8 +99,8 @@ function ProductFormContent() {
   const handleAddVariant = () => {
     if (!optionName || !optionValue) return;
     const v: ProductVariant = {
-      id: "var-" + Date.now(),
-      product_id: editId || "new",
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "",
+      product_id: editId || "",
       sku: `${sku || "SKU"}-${optionValue.toUpperCase().slice(0, 3)}`,
       price: regularPrice ? Number(regularPrice) : 0,
       stock_quantity: 10,
@@ -148,8 +148,8 @@ function ProductFormContent() {
         meta_title: metaTitle.trim() || title.trim(),
         meta_description: description.trim(),
         images: images.map((url, idx) => ({
-          id: "img-" + idx + "-" + Date.now(),
-          product_id: editId || "new",
+          id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "",
+          product_id: editId || "",
           image_url: url,
           sort_order: idx,
         })),

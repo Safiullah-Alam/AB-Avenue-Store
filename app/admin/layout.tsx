@@ -168,9 +168,6 @@ export default function AdminLayout({
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1.5">
-                  Default: <code className="text-rose-400">safiullah2024</code> or your phone number <code className="text-rose-400">03238048183</code>
-                </p>
               </div>
 
               <button

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
@@ -26,7 +26,8 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useToast } from "@/context/ToastContext";
 import { Review } from "@/types";
-import { getStoredProducts } from "@/lib/products";
+import { getStoredProducts, fetchAllProducts } from "@/lib/products";
+import { Product } from "@/types";
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -34,17 +35,27 @@ export default function ProductDetailPage() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
 
-  const allProducts = getStoredProducts();
-  const product = allProducts.find((p) => p.slug === slug) || initialProducts.find((p) => p.slug === slug);
-  if (!product) {
-    notFound();
-  }
+  const [product, setProduct] = useState<Product | null>(() => {
+    const allProducts = getStoredProducts();
+    return allProducts.find((p) => p.slug === slug) || initialProducts.find((p) => p.slug === slug) || null;
+  });
+  const [loading, setLoading] = useState(!product);
+
+  useEffect(() => {
+    if (!product) {
+      fetchAllProducts().then((list) => {
+        const found = list.find((p) => p.slug === slug) || initialProducts.find((p) => p.slug === slug) || null;
+        setProduct(found);
+        setLoading(false);
+      });
+    }
+  }, [product, slug]);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const defaults: Record<string, string> = {};
-    product.options?.forEach((opt) => {
+    product?.options?.forEach((opt) => {
       if (opt.values && opt.values.length > 0) {
         defaults[opt.name] = opt.values[0].value;
       }
@@ -62,13 +73,25 @@ export default function ProductDetailPage() {
 
   // Reviews state
   const [reviewsList, setReviewsList] = useState<Review[]>(() => {
-    return initialReviews.filter((r) => r.product_id === product.id);
+    return initialReviews.filter((r) => r.product_id === product?.id);
   });
   const [newRating, setNewRating] = useState(5);
   const [newReviewTitle, setNewReviewTitle] = useState("");
   const [newReviewBody, setNewReviewBody] = useState("");
   const [newReviewName, setNewReviewName] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!product) {
+    notFound();
+  }
 
   // Zoom hover state
   const [isZoomed, setIsZoomed] = useState(false);
@@ -153,7 +176,7 @@ export default function ProductDetailPage() {
     }, 400);
   };
 
-  const relatedProducts = allProducts
+  const relatedProducts = getStoredProducts()
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
 

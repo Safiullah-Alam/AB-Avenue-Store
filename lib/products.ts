@@ -1,5 +1,4 @@
 import { Product } from "@/types";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const STORAGE_KEY = "ab_store_products";
 
@@ -21,35 +20,49 @@ export function getStoredProducts(): Product[] {
 }
 
 /**
- * Fetch products from Supabase if configured, otherwise fallback to local store
+ * Fetch products from Server API (which queries Supabase with service role)
+ * with robust local cache fallback
  */
 export async function fetchAllProducts(): Promise<Product[]> {
-  if (isSupabaseConfigured()) {
-    try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, category:categories(*), images:product_images(*), variants:product_variants(*)")
-        .order("created_at", { ascending: false });
+  try {
+    const res = await fetch("/api/products", {
+      cache: "no-store",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
 
-      if (!error && data) {
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.products)) {
         if (typeof window !== "undefined") {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          // If remote DB returned products, cache them locally
+          if (data.products.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.products));
+          } else {
+            // If remote DB is empty, check if we have local products
+            const local = getStoredProducts();
+            if (local.length > 0) {
+              return local;
+            }
+          }
         }
-        return data as Product[];
+        return data.products as Product[];
       }
-    } catch (err) {
-      console.warn("Supabase fetch products error, fallback to local:", err);
     }
+  } catch (err) {
+    console.warn("Fetch products API error, fallback to local:", err);
   }
+
   return getStoredProducts();
 }
 
 /**
- * Save new or updated product
+ * Save new or updated product via Server API
  */
 export async function saveProduct(productData: Partial<Product>): Promise<Product> {
-  const newProduct: Product = {
-    id: productData.id || "prod-" + Date.now(),
+  const localCopy: Product = {
+    id: productData.id || (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "prod-" + Date.now()),
     title: productData.title || "Untitled Product",
     slug: productData.slug || "product-" + Date.now(),
     description: productData.description || "",
@@ -72,63 +85,61 @@ export async function saveProduct(productData: Partial<Product>): Promise<Produc
     updated_at: new Date().toISOString(),
   };
 
-  // If Supabase is connected, persist to remote database
-  if (isSupabaseConfigured()) {
-    try {
-      const { error } = await supabase.from("products").upsert({
-        id: newProduct.id,
-        title: newProduct.title,
-        slug: newProduct.slug,
-        description: newProduct.description,
-        category_id: newProduct.category_id,
-        price: newProduct.price,
-        sale_price: newProduct.sale_price,
-        sku: newProduct.sku,
-        stock_quantity: newProduct.stock_quantity,
-        track_inventory: newProduct.track_inventory,
-        allow_backorders: newProduct.allow_backorders,
-        status: newProduct.status,
-        tags: newProduct.tags,
-        meta_title: newProduct.meta_title,
-        meta_description: newProduct.meta_description,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) {
-        console.error("Supabase upsert product error:", error);
+  let savedProduct = localCopy;
+
+  try {
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...productData,
+        id: localCopy.id,
+      }),
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.product) {
+        savedProduct = json.product;
       }
-    } catch (err) {
-      console.warn("Supabase upsert error:", err);
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      console.warn("Server saveProduct returned error:", errJson);
     }
+  } catch (err) {
+    console.warn("Network error during saveProduct, persisting locally:", err);
   }
 
   // Always sync to localStorage
   if (typeof window !== "undefined") {
     const existing = getStoredProducts();
-    const index = existing.findIndex((p) => p.id === newProduct.id);
+    const index = existing.findIndex((p) => p.id === savedProduct.id);
     let updated: Product[];
     if (index >= 0) {
       updated = [...existing];
-      updated[index] = { ...existing[index], ...newProduct };
+      updated[index] = { ...existing[index], ...savedProduct };
     } else {
-      updated = [newProduct, ...existing];
+      updated = [savedProduct, ...existing];
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event("products_updated"));
   }
 
-  return newProduct;
+  return savedProduct;
 }
 
 /**
  * Delete product from store and remote DB
  */
 export async function deleteProduct(id: string): Promise<void> {
-  if (isSupabaseConfigured()) {
-    try {
-      await supabase.from("products").delete().eq("id", id);
-    } catch (err) {
-      console.warn("Supabase delete error:", err);
-    }
+  try {
+    await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+  } catch (err) {
+    console.warn("API delete error:", err);
   }
 
   if (typeof window !== "undefined") {

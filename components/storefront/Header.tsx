@@ -16,7 +16,7 @@ export function Header() {
   const pathname = usePathname();
   const { itemCount, openDrawer, isCartBouncing } = useCart();
   const { wishlistCount } = useWishlist();
-  const { user, profile, isAdmin, signOut, simulateLoginAsRole } = useAuth();
+  const { user, profile, isAdmin, signOut } = useAuth();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -198,47 +198,22 @@ export function Header() {
                       <ArrowUpRight className="w-3.5 h-3.5 text-foreground-secondary" />
                     </Link>
 
-                    {/* Admin Portal Direct Access */}
-                    <div className="my-1 border-t border-black/5" />
-                    <Link
-                      href="/admin"
-                      className="flex items-center justify-between px-3 py-2 rounded-lg text-accent font-semibold bg-accent/5 hover:bg-accent/10 transition-colors"
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        Admin Studio
-                      </span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </Link>
-
-                    {/* Quick Demo Role Switcher for seamless testing */}
-                    <div className="p-2 border-t border-black/5 mt-1 bg-[#FAFAFA] rounded-lg">
-                      <p className="text-[10px] uppercase tracking-wider text-foreground-secondary font-semibold mb-1">
-                        Role Simulation
-                      </p>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => simulateLoginAsRole("admin")}
-                          className={`flex-1 py-1 px-1.5 rounded text-[10px] font-semibold text-center transition-colors ${
-                            isAdmin
-                              ? "bg-accent text-white"
-                              : "bg-white border border-black/10 text-foreground"
-                          }`}
+                    {/* Admin Portal - Only visible if verified as Admin */}
+                    {isAdmin && (
+                      <>
+                        <div className="my-1 border-t border-black/5" />
+                        <Link
+                          href="/admin"
+                          className="flex items-center justify-between px-3 py-2 rounded-lg text-accent font-semibold bg-accent/5 hover:bg-accent/10 transition-colors"
                         >
-                          Admin
-                        </button>
-                        <button
-                          onClick={() => simulateLoginAsRole("customer")}
-                          className={`flex-1 py-1 px-1.5 rounded text-[10px] font-semibold text-center transition-colors ${
-                            !isAdmin
-                              ? "bg-accent text-white"
-                              : "bg-white border border-black/10 text-foreground"
-                          }`}
-                        >
-                          Client
-                        </button>
-                      </div>
-                    </div>
+                          <span className="flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Admin Studio
+                          </span>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </>
+                    )}
 
                     {user && (
                       <button
@@ -342,22 +317,24 @@ export function Header() {
                 </motion.div>
               ))}
 
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, x: -30 },
-                  visible: { opacity: 1, x: 0 },
-                }}
-                className="pt-6 border-t border-black/5"
-              >
-                <Link
-                  href="/admin"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-base font-semibold text-accent flex items-center gap-2"
+              {isAdmin && (
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0, x: -30 },
+                    visible: { opacity: 1, x: 0 },
+                  }}
+                  className="pt-6 border-t border-black/5"
                 >
-                  <ShieldCheck className="w-5 h-5" />
-                  Admin Studio
-                </Link>
-              </motion.div>
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-base font-semibold text-accent flex items-center gap-2"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    Admin Studio
+                  </Link>
+                </motion.div>
+              )}
             </motion.nav>
 
             <div className="pt-6 border-t border-black/5 text-xs text-foreground-secondary flex justify-between">

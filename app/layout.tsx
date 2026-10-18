@@ -11,6 +11,14 @@ export const metadata: Metadata = {
   title: "AB Avenue | Adorable Children's Fashion — Karachi",
   description:
     "Shop the cutest children's clothing in Karachi. From party dresses to everyday essentials — AB Avenue brings joy to your little one's wardrobe. Free delivery across Karachi!",
+  icons: {
+    icon: [
+      { url: "/ab-avenue-logo.jpg" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/ab-avenue-logo.jpg",
+    apple: "/ab-avenue-logo.jpg",
+  },
 };
 
 export default function RootLayout({
