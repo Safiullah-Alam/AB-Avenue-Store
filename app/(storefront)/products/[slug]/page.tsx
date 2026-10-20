@@ -53,15 +53,49 @@ export default function ProductDetailPage() {
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
-    const defaults: Record<string, string> = {};
-    product?.options?.forEach((opt) => {
-      if (opt.values && opt.values.length > 0) {
-        defaults[opt.name] = opt.values[0].value;
-      }
-    });
-    return defaults;
-  });
+
+  // Derive options from product.options or fallback to product.variants
+  const productOptions = React.useMemo(() => {
+    if (product?.options && product.options.length > 0) return product.options;
+    if (product?.variants && product.variants.length > 0) {
+      const optMap: Record<string, Set<string>> = {};
+      product.variants.forEach((v) => {
+        v.option_values?.forEach((ov) => {
+          if (!optMap[ov.option_name]) optMap[ov.option_name] = new Set();
+          optMap[ov.option_name].add(ov.value);
+        });
+      });
+      return Object.entries(optMap).map(([name, set], idx) => ({
+        id: `opt-${idx + 1}`,
+        product_id: product.id,
+        name,
+        sort_order: idx + 1,
+        values: Array.from(set).map((val, vIdx) => ({
+          id: `opt-val-${idx + 1}-${vIdx + 1}`,
+          option_id: `opt-${idx + 1}`,
+          value: val,
+          sort_order: vIdx + 1,
+        })),
+      }));
+    }
+    return [];
+  }, [product]);
+
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (productOptions.length > 0) {
+      setSelectedOptions((prev) => {
+        const next = { ...prev };
+        productOptions.forEach((opt) => {
+          if (!next[opt.name] && opt.values && opt.values.length > 0) {
+            next[opt.name] = opt.values[0].value;
+          }
+        });
+        return next;
+      });
+    }
+  }, [productOptions]);
 
   // Accordion state
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
@@ -351,18 +385,18 @@ export default function ProductDetailPage() {
 
           <div className="border-t border-black/5 pt-6 space-y-5">
             {/* Options Selectors */}
-            {product.options &&
-              product.options.map((option) => (
+            {productOptions.length > 0 &&
+              productOptions.map((option) => (
                 <div key={option.id}>
                   <div className="flex justify-between text-xs mb-2.5">
                     <span className="caption-label">{option.name}</span>
                     <span className="font-semibold text-foreground">
-                      {selectedOptions[option.name]}
+                      {selectedOptions[option.name] || option.values?.[0]?.value}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {option.values?.map((val) => {
-                      const isSelected = selectedOptions[option.name] === val.value;
+                      const isSelected = (selectedOptions[option.name] || option.values?.[0]?.value) === val.value;
                       return (
                         <button
                           key={val.id}

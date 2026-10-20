@@ -71,16 +71,16 @@ export function Header() {
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
-            ? "bg-white/90 backdrop-blur-md border-b border-black/5 shadow-sm py-3"
-            : "bg-[#FFF9F5]/95 backdrop-blur-sm border-b border-transparent py-5"
+            ? "bg-white/95 backdrop-blur-md border-b border-black/5 shadow-sm py-2.5 sm:py-3"
+            : "bg-[#FFF9F5]/95 backdrop-blur-sm border-b border-transparent py-3 sm:py-5"
         }`}
       >
-        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-16 flex items-center justify-between gap-2">
           {/* Mobile menu trigger */}
           <div className="flex items-center lg:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 -ml-2 text-foreground hover:text-accent transition-colors"
+              className="p-1.5 -ml-1 text-foreground hover:text-accent transition-colors"
               aria-label="Open mobile menu"
             >
               <Menu className="w-5 h-5" />
@@ -88,16 +88,17 @@ export function Header() {
           </div>
 
           {/* Brand Logo */}
-          <div className="flex items-center gap-8">
-            <Link href="/" className="group flex items-center gap-2 select-none">
-              <Image
-                src="/ab-avenue-logo.jpg"
-                alt="AB Avenue"
-                width={36}
-                height={36}
-                className="rounded-md"
-              />
-              <span className="font-serif text-xl sm:text-2xl font-normal tracking-wider text-foreground group-hover:text-accent transition-colors">
+          <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+            <Link href="/" className="group flex items-center gap-2 select-none min-w-0">
+              <div className="relative w-7 h-7 sm:w-9 sm:h-9 flex-shrink-0">
+                <Image
+                  src="/ab-avenue-logo.jpg"
+                  alt="AB Avenue"
+                  fill
+                  className="rounded-md object-contain"
+                />
+              </div>
+              <span className="font-serif text-lg sm:text-2xl font-normal tracking-wider text-foreground group-hover:text-accent transition-colors truncate">
                 {initialSiteSettings.site_name}
               </span>
             </Link>
@@ -130,14 +131,14 @@ export function Header() {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
             {/* Search */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 rounded-full hover:bg-black/5 text-foreground transition-colors"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-black/5 text-foreground transition-colors"
               aria-label="Search items"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Wishlist */}
@@ -265,81 +266,170 @@ export function Header() {
       {/* 3. Search Modal */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* 4. Full-screen Mobile Navigation Overlay with staggered nav links */}
+      {/* 4. Full-screen Mobile Navigation Drawer with quick categories and shortcuts */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col p-8"
+            className="fixed inset-0 z-50 bg-white/98 backdrop-blur-xl flex flex-col p-6 sm:p-8 overflow-y-auto"
           >
-            <div className="flex items-center justify-between pb-6 border-b border-black/5">
-              <span className="font-serif text-2xl text-foreground font-normal">
-                {initialSiteSettings.site_name}
-              </span>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-5 border-b border-black/5">
+              <div className="flex items-center gap-2">
+                <Image
+                  src="/ab-avenue-logo.jpg"
+                  alt="AB Avenue"
+                  width={32}
+                  height={32}
+                  className="rounded-md"
+                />
+                <span className="font-serif text-xl text-foreground font-medium">
+                  {initialSiteSettings.site_name}
+                </span>
+              </div>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-full hover:bg-black/5 text-foreground"
+                className="p-2 rounded-full hover:bg-black/5 text-foreground transition-colors"
                 aria-label="Close menu"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
+            {/* Quick Search Bar in Mobile Menu */}
+            <div className="pt-4 pb-2">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsSearchOpen(true);
+                }}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-[#F6F6F6] text-foreground-secondary hover:text-foreground text-xs transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Search className="w-4 h-4 text-accent" />
+                  Search products, sizes, tracksuits...
+                </span>
+                <span className="text-[10px] font-semibold uppercase bg-black/5 px-2 py-0.5 rounded-full">
+                  Tap
+                </span>
+              </button>
+            </div>
+
+            {/* Free Delivery Banner */}
+            <div className="my-3 p-3 rounded-2xl bg-accent/5 border border-accent/15 text-xs text-foreground">
+              <p className="font-bold text-accent flex items-center gap-1.5 mb-0.5">
+                <span>🚚 Free Delivery Available</span>
+              </p>
+              <p className="text-[11px] text-foreground-secondary">
+                Free in <strong>North Karachi</strong> on Rs. 3,000+ & across <strong>Karachi</strong> on Rs. 5,000+!
+              </p>
+            </div>
+
+            {/* Main Navigation Links */}
             <motion.nav
               initial="hidden"
               animate="visible"
               variants={{
                 visible: {
                   transition: {
-                    staggerChildren: 0.08,
+                    staggerChildren: 0.05,
                   },
                 },
               }}
-              className="flex-1 flex flex-col justify-center space-y-6 py-8"
+              className="flex-1 py-4 space-y-3"
             >
-              {navLinks.map((link) => (
-                <motion.div
-                  key={link.href}
-                  variants={{
-                    hidden: { opacity: 0, x: -30 },
-                    visible: { opacity: 1, x: 0 },
-                  }}
+              <p className="text-[11px] font-bold uppercase tracking-wider text-foreground-secondary px-1">
+                Explore Collections
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/products?category=boys"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-[#F9F9F9] hover:bg-accent/10 border border-black/5 transition-all text-left group"
                 >
+                  <span className="text-xl block mb-1">👦</span>
+                  <p className="font-semibold text-xs text-foreground group-hover:text-accent">Boys' Collection</p>
+                  <span className="text-[10px] text-foreground-secondary">Tracksuits & Sets</span>
+                </Link>
+
+                <Link
+                  href="/products?category=girls"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-[#F9F9F9] hover:bg-accent/10 border border-black/5 transition-all text-left group"
+                >
+                  <span className="text-xl block mb-1">👧</span>
+                  <p className="font-semibold text-xs text-foreground group-hover:text-accent">Girls' Collection</p>
+                  <span className="text-[10px] text-foreground-secondary">Dresses & Outfits</span>
+                </Link>
+
+                <Link
+                  href="/products?category=baby"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-[#F9F9F9] hover:bg-accent/10 border border-black/5 transition-all text-left group"
+                >
+                  <span className="text-xl block mb-1">🍼</span>
+                  <p className="font-semibold text-xs text-foreground group-hover:text-accent">Baby Essentials</p>
+                  <span className="text-[10px] text-foreground-secondary">Soft Rompers</span>
+                </Link>
+
+                <Link
+                  href="/products"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-3.5 rounded-2xl bg-[#F9F9F9] hover:bg-accent/10 border border-black/5 transition-all text-left group"
+                >
+                  <span className="text-xl block mb-1">✨</span>
+                  <p className="font-semibold text-xs text-foreground group-hover:text-accent">All Products</p>
+                  <span className="text-[10px] text-foreground-secondary">View Complete Shop</span>
+                </Link>
+              </div>
+
+              <div className="pt-3 space-y-1">
+                {navLinks.map((link) => (
                   <Link
+                    key={link.href}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="font-serif text-3xl font-normal text-foreground hover:text-accent transition-colors block"
+                    className="flex items-center justify-between py-2.5 px-2 rounded-xl text-sm font-medium text-foreground hover:bg-black/5 hover:text-accent transition-colors"
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    <ArrowUpRight className="w-4 h-4 text-foreground-secondary" />
                   </Link>
-                </motion.div>
-              ))}
+                ))}
+              </div>
 
               {isAdmin && (
-                <motion.div
-                  variants={{
-                    hidden: { opacity: 0, x: -30 },
-                    visible: { opacity: 1, x: 0 },
-                  }}
-                  className="pt-6 border-t border-black/5"
-                >
+                <div className="pt-3 border-t border-black/5">
                   <Link
                     href="/admin"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-base font-semibold text-accent flex items-center gap-2"
+                    className="p-3 rounded-2xl bg-accent/10 text-accent font-semibold flex items-center justify-between text-xs"
                   >
-                    <ShieldCheck className="w-5 h-5" />
-                    Admin Studio
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4" />
+                      Admin Studio Console
+                    </span>
+                    <ArrowUpRight className="w-4 h-4" />
                   </Link>
-                </motion.div>
+                </div>
               )}
             </motion.nav>
 
-            <div className="pt-6 border-t border-black/5 text-xs text-foreground-secondary flex justify-between">
-              <span>{initialSiteSettings.contact_email}</span>
-              <span>{initialSiteSettings.contact_phone}</span>
+            {/* Quick Contact & Footer */}
+            <div className="pt-4 border-t border-black/5 text-xs text-foreground-secondary flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span>WhatsApp: <strong>+92 323 8048183</strong></span>
+                <a
+                  href="https://wa.me/923238048183"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-emerald-600 font-bold hover:underline"
+                >
+                  Message
+                </a>
+              </div>
+              <p className="text-[11px] text-foreground-secondary truncate">{initialSiteSettings.business_address}</p>
             </div>
           </motion.div>
         )}

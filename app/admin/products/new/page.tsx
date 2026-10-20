@@ -44,9 +44,19 @@ function ProductFormContent() {
   const [newImageUrl, setNewImageUrl] = useState("");
 
   // Dynamic variants
+  const COMMON_SIZES = [
+    "1-2 Years",
+    "2-3 Years",
+    "3-4 Years",
+    "4-5 Years",
+    "5-6 Years",
+    "6-7 Years",
+    "7-8 Years",
+    "9-10 Years",
+  ];
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [optionName, setOptionName] = useState("Size");
-  const [optionValue, setOptionValue] = useState("3-4 Years");
+  const [optionValue, setOptionValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -67,8 +77,12 @@ function ProductFormContent() {
         if (existing.images && existing.images.length > 0) {
           setImages(existing.images.map((i) => i.image_url));
         }
-        if (existing.variants) {
+        if (existing.variants && existing.variants.length > 0) {
           setVariants(existing.variants);
+          const firstVal = existing.variants[0]?.option_values?.[0];
+          if (firstVal) {
+            setOptionName(firstVal.option_name || "Size");
+          }
         }
       }
     } else {
@@ -97,17 +111,67 @@ function ProductFormContent() {
   };
 
   const handleAddVariant = () => {
-    if (!optionName || !optionValue) return;
+    const val = optionValue.trim();
+    if (!val) return;
+    const name = optionName.trim() || "Size";
+
+    const existingIdx = variants.findIndex((v) =>
+      v.option_values?.some((o) => o.value.toLowerCase() === val.toLowerCase())
+    );
+    if (existingIdx >= 0) {
+      showToast({
+        type: "info",
+        title: "Size Already Added",
+        message: `"${val}" is already included in product options.`,
+      });
+      return;
+    }
+
     const v: ProductVariant = {
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "",
+      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "var-" + Date.now(),
       product_id: editId || "",
-      sku: `${sku || "SKU"}-${optionValue.toUpperCase().slice(0, 3)}`,
+      sku: `${sku || "SKU"}-${val.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4)}`,
       price: regularPrice ? Number(regularPrice) : 0,
-      stock_quantity: 10,
-      option_values: [{ option_name: optionName, value: optionValue }],
+      stock_quantity: Number(stock) || 10,
+      option_values: [{ option_name: name, value: val }],
     };
     setVariants((prev) => [...prev, v]);
     setOptionValue("");
+  };
+
+  const togglePresetSize = (sizeStr: string) => {
+    const name = optionName.trim() || "Size";
+    const existingIdx = variants.findIndex((v) =>
+      v.option_values?.some((o) => o.value.toLowerCase() === sizeStr.toLowerCase())
+    );
+    if (existingIdx >= 0) {
+      setVariants((prev) => prev.filter((_, i) => i !== existingIdx));
+    } else {
+      const v: ProductVariant = {
+        id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "var-" + Date.now(),
+        product_id: editId || "",
+        sku: `${sku || "SKU"}-${sizeStr.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4)}`,
+        price: regularPrice ? Number(regularPrice) : 0,
+        stock_quantity: Number(stock) || 10,
+        option_values: [{ option_name: name, value: sizeStr }],
+      };
+      setVariants((prev) => [...prev, v]);
+    }
+  };
+
+  const handleUpdateVariantValue = (id: string, newVal: string) => {
+    setVariants((prev) =>
+      prev.map((v) => {
+        if (v.id === id) {
+          return {
+            ...v,
+            sku: `${sku || "SKU"}-${newVal.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4)}`,
+            option_values: v.option_values.map((ov) => ({ ...ov, value: newVal })),
+          };
+        }
+        return v;
+      })
+    );
   };
 
   const handleRemoveVariant = (id: string) => {
@@ -131,6 +195,26 @@ function ProductFormContent() {
         .map((t) => t.trim())
         .filter(Boolean);
 
+      // Auto-commit optionValue if typed and not yet in variants
+      let finalVariants = [...variants];
+      const val = optionValue.trim();
+      if (val) {
+        const name = optionName.trim() || "Size";
+        const alreadyExists = finalVariants.some((v) =>
+          v.option_values?.some((ov) => ov.value.toLowerCase() === val.toLowerCase())
+        );
+        if (!alreadyExists) {
+          finalVariants.push({
+            id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "var-" + Date.now(),
+            product_id: editId || "",
+            sku: `${sku || "SKU"}-${val.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4)}`,
+            price: regularPrice ? Number(regularPrice) : 0,
+            stock_quantity: Number(stock) || 10,
+            option_values: [{ option_name: name, value: val }],
+          });
+        }
+      }
+
       const savedItem = await saveProduct({
         id: editId || undefined,
         title: title.trim(),
@@ -153,7 +237,7 @@ function ProductFormContent() {
           image_url: url,
           sort_order: idx,
         })),
-        variants,
+        variants: finalVariants,
       });
 
       showToast({
@@ -313,55 +397,129 @@ function ProductFormContent() {
 
           {/* Card 3: Variants */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-black/5 shadow-sm space-y-4">
-            <h3 className="font-serif text-lg font-semibold text-[#111827]">
-              Product Variants & Sizes
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Input
-                label="Option Name"
-                value={optionName}
-                onChange={(e) => setOptionName(e.target.value)}
-                placeholder="Size, Color, Age Group"
-              />
-              <Input
-                label="Option Value"
-                value={optionValue}
-                onChange={(e) => setOptionValue(e.target.value)}
-                placeholder="2-3 Years, Blue, Small"
-              />
+            <div>
+              <h3 className="font-serif text-lg font-semibold text-[#111827]">
+                Product Sizes & Options
+              </h3>
+              <p className="text-xs text-foreground-secondary mt-0.5">
+                Add the age groups or sizes available for this item. Customers can select them when purchasing.
+              </p>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              onClick={handleAddVariant}
-              className="gap-1.5"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Add Variant</span>
-            </Button>
-
-            {variants.length > 0 && (
-              <div className="divide-y divide-black/5 border border-black/5 rounded-2xl p-2 bg-[#FAFAFA]">
-                {variants.map((v) => (
-                  <div key={v.id} className="py-2.5 px-3 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-[#111827]">
-                        {v.option_values.map((o) => `${o.option_name}: ${o.value}`).join(", ")}
-                      </span>
-                      <span className="text-[#6B7280] ml-2 font-mono">({v.sku})</span>
-                    </div>
+            {/* Quick Age Presets */}
+            <div>
+              <label className="block text-xs font-semibold text-foreground-secondary mb-2">
+                Quick Select Popular Age Groups:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {COMMON_SIZES.map((sz) => {
+                  const isSelected = variants.some((v) =>
+                    v.option_values?.some((o) => o.value.toLowerCase() === sz.toLowerCase())
+                  );
+                  return (
                     <button
-                      onClick={() => handleRemoveVariant(v.id)}
-                      className="text-rose-600 hover:text-rose-700"
+                      key={sz}
+                      type="button"
+                      onClick={() => togglePresetSize(sz)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                        isSelected
+                          ? "border-accent bg-accent text-white shadow-sm font-semibold"
+                          : "border-black/10 bg-[#FAFAFA] hover:border-black/30 text-foreground"
+                      }`}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      {isSelected ? `✓ ${sz}` : `+ ${sz}`}
                     </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Custom Input */}
+            <div className="pt-2 border-t border-black/5">
+              <label className="block text-xs font-semibold text-foreground-secondary mb-2">
+                Or Type Custom Option:
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                <div className="sm:col-span-5">
+                  <Input
+                    label="Option Type"
+                    value={optionName}
+                    onChange={(e) => setOptionName(e.target.value)}
+                    placeholder="Size, Age, Color"
+                  />
+                </div>
+                <div className="sm:col-span-5">
+                  <Input
+                    label="Option Value"
+                    value={optionValue}
+                    onChange={(e) => setOptionValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddVariant();
+                      }
+                    }}
+                    placeholder="e.g. 3-4 Years, 6-12 Months"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    type="button"
+                    onClick={handleAddVariant}
+                    className="w-full justify-center gap-1.5"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Add</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Variants List */}
+            {variants.length > 0 ? (
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-foreground-secondary mb-2">
+                  Active Variants ({variants.length}):
+                </label>
+                <div className="divide-y divide-black/5 border border-black/10 rounded-2xl overflow-hidden bg-[#FAFAFA]">
+                  {variants.map((v) => {
+                    const currentVal = v.option_values?.[0]?.value || "";
+                    const optType = v.option_values?.[0]?.option_name || "Size";
+                    return (
+                      <div key={v.id} className="py-2.5 px-4 flex items-center justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="font-semibold text-foreground uppercase tracking-wider text-[11px] min-w-[45px]">
+                            {optType}:
+                          </span>
+                          <input
+                            type="text"
+                            value={currentVal}
+                            onChange={(e) => handleUpdateVariantValue(v.id, e.target.value)}
+                            className="px-2.5 py-1 rounded-lg border border-black/15 bg-white text-xs font-semibold text-foreground focus:outline-none focus:border-accent max-w-[140px]"
+                          />
+                          <span className="text-[#6B7280] font-mono text-[11px] hidden sm:inline">
+                            ({v.sku})
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveVariant(v.id)}
+                          className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Remove option"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200">
+                💡 Tip: Tap any age group above or type a size to add it to your product.
+              </p>
             )}
           </div>
         </div>

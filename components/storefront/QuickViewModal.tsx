@@ -132,15 +132,42 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
             </p>
 
             {/* Options / Variants */}
-            {product.options &&
-              product.options.map((opt) => (
+            {(() => {
+              const opts =
+                product.options && product.options.length > 0
+                  ? product.options
+                  : product.variants && product.variants.length > 0
+                  ? (() => {
+                      const optMap: Record<string, Set<string>> = {};
+                      product.variants.forEach((v) => {
+                        v.option_values?.forEach((ov) => {
+                          if (!optMap[ov.option_name]) optMap[ov.option_name] = new Set();
+                          optMap[ov.option_name].add(ov.value);
+                        });
+                      });
+                      return Object.entries(optMap).map(([name, set], idx) => ({
+                        id: `opt-${idx + 1}`,
+                        product_id: product.id,
+                        name,
+                        sort_order: idx + 1,
+                        values: Array.from(set).map((val, vIdx) => ({
+                          id: `opt-val-${idx + 1}-${vIdx + 1}`,
+                          option_id: `opt-${idx + 1}`,
+                          value: val,
+                          sort_order: vIdx + 1,
+                        })),
+                      }));
+                    })()
+                  : [];
+
+              return opts.map((opt) => (
                 <div key={opt.id} className="mb-4">
                   <label className="block text-xs uppercase tracking-wider font-semibold text-foreground-secondary mb-2">
                     {opt.name}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {opt.values?.map((val) => {
-                      const isSelected = selectedOptions[opt.name] === val.value;
+                      const isSelected = (selectedOptions[opt.name] || opt.values?.[0]?.value) === val.value;
                       return (
                         <button
                           key={val.id}
@@ -157,7 +184,8 @@ export function QuickViewModal({ product, onClose }: QuickViewModalProps) {
                     })}
                   </div>
                 </div>
-              ))}
+              ));
+            })()}
 
             {/* Quantity */}
             <div className="mb-6">

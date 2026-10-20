@@ -50,10 +50,22 @@ export default function CheckoutPage() {
     country: "Pakistan",
   });
 
-  // Shipping Methods in Pakistan
+  // Shipping Methods in Karachi
   const shippingMethods = [
-    { id: "std", name: "Standard Courier Delivery (TCS / Trax)", time: "2–4 Business Days", cost: 200 },
-    { id: "exp", name: "Karachi Same-Day / Express Courier", time: "24 Hours", cost: 350 },
+    {
+      id: "north",
+      name: "North Karachi Delivery",
+      time: "1–2 Business Days (Free over Rs. 3,000)",
+      cost: 100,
+      freeThreshold: 3000,
+    },
+    {
+      id: "karachi",
+      name: "All Over Karachi Delivery",
+      time: "2–3 Business Days (Free over Rs. 5,000)",
+      cost: 200,
+      freeThreshold: 5000,
+    },
   ];
   const [selectedShippingMethod, setSelectedShippingMethod] = useState(shippingMethods[0]);
 
@@ -69,8 +81,8 @@ export default function CheckoutPage() {
       : appliedCoupon.discountFixed || 0
     : 0;
 
-  // Free shipping on orders over Rs. 3000
-  const isFreeShipping = subtotal >= 3000;
+  // Free shipping according to selected Karachi zone threshold
+  const isFreeShipping = subtotal >= selectedShippingMethod.freeThreshold;
   const shippingCost = isFreeShipping ? 0 : selectedShippingMethod.cost;
   const finalTotal = Math.max(0, subtotal - discountAmount) + shippingCost;
 
@@ -369,7 +381,8 @@ export default function CheckoutPage() {
                   <h3 className="caption-label text-foreground">Delivery Service</h3>
                   <div className="space-y-2">
                     {shippingMethods.map((m) => {
-                      const cost = isFreeShipping ? 0 : m.cost;
+                      const isMethodFree = subtotal >= m.freeThreshold;
+                      const cost = isMethodFree ? 0 : m.cost;
                       return (
                         <label
                           key={m.id}
@@ -393,7 +406,11 @@ export default function CheckoutPage() {
                             </div>
                           </div>
                           <span className="text-xs font-semibold text-foreground">
-                            {cost === 0 ? "FREE" : formatCurrency(cost)}
+                            {cost === 0 ? (
+                              <span className="text-emerald-600 font-bold">FREE</span>
+                            ) : (
+                              formatCurrency(cost)
+                            )}
                           </span>
                         </label>
                       );

@@ -3,7 +3,7 @@ import { getServiceSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Product, ProductImage, ProductVariant } from "@/types";
 import crypto from "crypto";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function ensureUUID(id?: string | null): string {
   if (id && UUID_REGEX.test(id)) {
@@ -146,21 +146,23 @@ export async function POST(req: Request) {
     }
 
     // 3. Sync variants if provided
-    if (Array.isArray(variants) && variants.length > 0) {
+    if (Array.isArray(variants)) {
       await supabase.from("product_variants").delete().eq("product_id", productId);
 
-      const formattedVariants = variants.map((v: ProductVariant, idx: number) => ({
-        id: crypto.randomUUID(),
-        product_id: productId,
-        sku: v.sku || `${sku}-${idx + 1}`,
-        price: v.price ? Number(v.price) : Number(price) || 0,
-        stock_quantity: v.stock_quantity !== undefined ? Number(v.stock_quantity) : 10,
-        option_values: v.option_values || [],
-      }));
+      if (variants.length > 0) {
+        const formattedVariants = variants.map((v: ProductVariant, idx: number) => ({
+          id: crypto.randomUUID(),
+          product_id: productId,
+          sku: v.sku || `${sku}-${idx + 1}`,
+          price: v.price ? Number(v.price) : Number(price) || 0,
+          stock_quantity: v.stock_quantity !== undefined ? Number(v.stock_quantity) : 10,
+          option_values: v.option_values || [],
+        }));
 
-      const { error: varError } = await supabase.from("product_variants").insert(formattedVariants);
-      if (varError) {
-        console.warn("Error inserting product variants:", varError);
+        const { error: varError } = await supabase.from("product_variants").insert(formattedVariants);
+        if (varError) {
+          console.warn("Error inserting product variants:", varError);
+        }
       }
     }
 

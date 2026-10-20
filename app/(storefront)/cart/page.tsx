@@ -57,15 +57,19 @@ export default function CartPage() {
     setCouponCode("");
   };
 
+  const [deliveryArea, setDeliveryArea] = useState<"north" | "karachi">("north");
+
   const discountAmount = appliedCoupon
     ? appliedCoupon.discountPercent
       ? (subtotal * appliedCoupon.discountPercent) / 100
       : appliedCoupon.discountFixed || 0
     : 0;
 
-  const estimatedShipping = subtotal > 250 || items.length === 0 ? 0 : 25;
-  const estimatedTax = (Math.max(0, subtotal - discountAmount) * 8.25) / 100;
-  const finalTotal = Math.max(0, subtotal - discountAmount) + estimatedShipping + estimatedTax;
+  const freeThreshold = deliveryArea === "north" ? 3000 : 5000;
+  const isFreeDelivery = subtotal >= freeThreshold;
+  const deliveryFee = items.length === 0 ? 0 : isFreeDelivery ? 0 : deliveryArea === "north" ? 100 : 200;
+  const amountNeededForFree = Math.max(0, freeThreshold - subtotal);
+  const finalTotal = Math.max(0, subtotal - discountAmount) + deliveryFee;
 
   if (items.length === 0) {
     return (
@@ -229,6 +233,71 @@ export default function CartPage() {
               </form>
             )}
 
+            {/* Delivery Destination Selector */}
+            <div className="p-4 rounded-2xl bg-[#F8F8F8] border border-black/5 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-foreground flex items-center gap-1.5">
+                  <Truck className="w-4 h-4 text-accent" />
+                  Select Delivery Location:
+                </span>
+                <span className="text-xs font-bold text-accent">
+                  {isFreeDelivery ? "FREE" : formatCurrency(deliveryFee)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryArea("north")}
+                  className={`p-2.5 rounded-xl text-left border transition-all ${
+                    deliveryArea === "north"
+                      ? "border-accent bg-accent/10 font-semibold text-foreground ring-1 ring-accent"
+                      : "border-black/10 bg-white text-foreground-secondary hover:border-black/25"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>North Karachi</span>
+                    <span className="text-[10px] font-bold">Rs. 100</span>
+                  </div>
+                  <span className="text-[10px] text-foreground-secondary block mt-0.5">
+                    Free on Rs. 3,000+
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeliveryArea("karachi")}
+                  className={`p-2.5 rounded-xl text-left border transition-all ${
+                    deliveryArea === "karachi"
+                      ? "border-accent bg-accent/10 font-semibold text-foreground ring-1 ring-accent"
+                      : "border-black/10 bg-white text-foreground-secondary hover:border-black/25"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>All Karachi</span>
+                    <span className="text-[10px] font-bold">Rs. 200</span>
+                  </div>
+                  <span className="text-[10px] text-foreground-secondary block mt-0.5">
+                    Free on Rs. 5,000+
+                  </span>
+                </button>
+              </div>
+
+              {/* Free delivery unlocked message */}
+              <div className="pt-0.5">
+                {isFreeDelivery ? (
+                  <p className="text-xs font-semibold text-emerald-600 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    🎉 Congratulations! FREE delivery applied.
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-foreground-secondary">
+                    Add <strong>{formatCurrency(amountNeededForFree)}</strong> more to get <strong>FREE delivery</strong> in {deliveryArea === "north" ? "North Karachi" : "Karachi"}!
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Calculations Breakdown */}
             <div className="space-y-3 text-xs text-foreground-secondary pt-2">
               <div className="flex justify-between">
@@ -242,14 +311,10 @@ export default function CartPage() {
                 </div>
               )}
               <div className="flex justify-between">
-                <span>Insured Global Shipping</span>
+                <span>Delivery Charges ({deliveryArea === "north" ? "North Karachi" : "All Karachi"})</span>
                 <span className="font-semibold text-foreground">
-                  {estimatedShipping === 0 ? "Complimentary" : formatCurrency(estimatedShipping)}
+                  {deliveryFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatCurrency(deliveryFee)}
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Estimated Sales Tax (8.25%)</span>
-                <span className="font-semibold text-foreground">{formatCurrency(estimatedTax)}</span>
               </div>
               <div className="flex justify-between text-base font-semibold text-foreground pt-3 border-t border-black/5">
                 <span>Estimated Total</span>
@@ -267,11 +332,11 @@ export default function CartPage() {
             <div className="pt-4 border-t border-black/5 space-y-2 text-[11px] text-foreground-secondary">
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-accent" />
-                <span>Complimentary insured shipping over $250</span>
+                <span>Free delivery in North Karachi (Rs. 3000+) & all Karachi (Rs. 5000+)</span>
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-accent" />
-                <span>256-bit encrypted checkout via Razorpay</span>
+                <span>Safe payments with Cash on Delivery & EasyPaisa</span>
               </div>
             </div>
           </div>

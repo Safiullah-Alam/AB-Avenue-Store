@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, Trash2, ArrowRight, ShoppingBag, Tag, CheckCircle2 } from "lucide-react";
+import { X, Minus, Plus, Trash2, ArrowRight, ShoppingBag, Tag, CheckCircle2, Truck } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency } from "@/lib/utils";
@@ -59,15 +59,19 @@ export function CartDrawer() {
     setCouponCode("");
   };
 
+  const [deliveryArea, setDeliveryArea] = useState<"north" | "karachi">("north");
+
   const discountAmount = appliedCoupon
     ? appliedCoupon.discountPercent
       ? (subtotal * appliedCoupon.discountPercent) / 100
       : appliedCoupon.discountFixed || 0
     : 0;
 
-  const estimatedShipping = subtotal > 250 || items.length === 0 ? 0 : 25;
-  const estimatedTax = (Math.max(0, subtotal - discountAmount) * 8.25) / 100;
-  const finalTotal = Math.max(0, subtotal - discountAmount) + estimatedShipping + estimatedTax;
+  const freeThreshold = deliveryArea === "north" ? 3000 : 5000;
+  const isFreeDelivery = subtotal >= freeThreshold;
+  const deliveryFee = items.length === 0 ? 0 : isFreeDelivery ? 0 : deliveryArea === "north" ? 100 : 200;
+  const amountNeededForFree = Math.max(0, freeThreshold - subtotal);
+  const finalTotal = Math.max(0, subtotal - discountAmount) + deliveryFee;
 
   return (
     <AnimatePresence>
@@ -273,6 +277,73 @@ export function CartDrawer() {
                   <p className="text-xs text-destructive font-medium">{couponError}</p>
                 )}
 
+                {/* Delivery Location Selector */}
+                <div className="p-3 rounded-2xl bg-[#F8F8F8] border border-black/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-accent" />
+                      Delivery Destination:
+                    </span>
+                    <span className="text-[11px] font-bold text-accent">
+                      {isFreeDelivery ? "FREE" : formatCurrency(deliveryFee)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryArea("north")}
+                      className={`p-2 rounded-xl text-left border transition-all ${
+                        deliveryArea === "north"
+                          ? "border-accent bg-accent/10 font-semibold text-foreground"
+                          : "border-black/5 bg-white text-foreground-secondary hover:border-black/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>North Karachi</span>
+                        <span className="text-[10px] font-bold">Rs. 100</span>
+                      </div>
+                      <span className="text-[10px] text-foreground-secondary block">
+                        Free on Rs. 3,000+
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryArea("karachi")}
+                      className={`p-2 rounded-xl text-left border transition-all ${
+                        deliveryArea === "karachi"
+                          ? "border-accent bg-accent/10 font-semibold text-foreground"
+                          : "border-black/5 bg-white text-foreground-secondary hover:border-black/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>All Karachi</span>
+                        <span className="text-[10px] font-bold">Rs. 200</span>
+                      </div>
+                      <span className="text-[10px] text-foreground-secondary block">
+                        Free on Rs. 5,000+
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Free delivery prompt */}
+                  {items.length > 0 && (
+                    <div className="pt-1">
+                      {isFreeDelivery ? (
+                        <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          🎉 You have unlocked FREE Delivery!
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-foreground-secondary">
+                          Add <strong>{formatCurrency(amountNeededForFree)}</strong> more for <strong>FREE Delivery</strong> in {deliveryArea === "north" ? "North Karachi" : "Karachi"}!
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Subtotals breakdown */}
                 <div className="space-y-1.5 text-xs text-foreground-secondary">
                   <div className="flex justify-between">
@@ -286,14 +357,10 @@ export function CartDrawer() {
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span>Shipping</span>
+                    <span>Delivery Charges ({deliveryArea === "north" ? "North Karachi" : "All Karachi"})</span>
                     <span className="font-semibold text-foreground">
-                      {estimatedShipping === 0 ? "Complimentary" : formatCurrency(estimatedShipping)}
+                      {deliveryFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatCurrency(deliveryFee)}
                     </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Estimated Tax (8.25%)</span>
-                    <span className="font-semibold text-foreground">{formatCurrency(estimatedTax)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-semibold text-foreground pt-2 border-t border-black/5">
                     <span>Estimated Total</span>

@@ -35,10 +35,38 @@ export async function fetchAllProducts(): Promise<Product[]> {
     if (res.ok) {
       const data = await res.json();
       if (data.success && Array.isArray(data.products)) {
+        const enriched = (data.products as Product[]).map((p: Product) => {
+          if (!p.options || p.options.length === 0) {
+            const optMap: Record<string, Set<string>> = {};
+            p.variants?.forEach((v) => {
+              v.option_values?.forEach((ov) => {
+                if (!optMap[ov.option_name]) optMap[ov.option_name] = new Set();
+                optMap[ov.option_name].add(ov.value);
+              });
+            });
+            const genOpts = Object.entries(optMap).map(([name, set], idx) => ({
+              id: `opt-${idx + 1}`,
+              product_id: p.id,
+              name,
+              sort_order: idx + 1,
+              values: Array.from(set).map((val, vIdx) => ({
+                id: `opt-val-${idx + 1}-${vIdx + 1}`,
+                option_id: `opt-${idx + 1}`,
+                value: val,
+                sort_order: vIdx + 1,
+              })),
+            }));
+            if (genOpts.length > 0) {
+              return { ...p, options: genOpts };
+            }
+          }
+          return p;
+        });
+
         if (typeof window !== "undefined") {
           // If remote DB returned products, cache them locally
-          if (data.products.length > 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.products));
+          if (enriched.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(enriched));
           } else {
             // If remote DB is empty, check if we have local products
             const local = getStoredProducts();
@@ -47,7 +75,7 @@ export async function fetchAllProducts(): Promise<Product[]> {
             }
           }
         }
-        return data.products as Product[];
+        return enriched;
       }
     }
   } catch (err) {
@@ -110,6 +138,33 @@ export async function saveProduct(productData: Partial<Product>): Promise<Produc
     }
   } catch (err) {
     console.warn("Network error during saveProduct, persisting locally:", err);
+  }
+
+  // Populate options array from variants
+  const optionsMap: Record<string, Set<string>> = {};
+  const activeVariants = savedProduct.variants || localCopy.variants || [];
+  activeVariants.forEach((v) => {
+    v.option_values?.forEach((ov) => {
+      if (!optionsMap[ov.option_name]) optionsMap[ov.option_name] = new Set();
+      optionsMap[ov.option_name].add(ov.value);
+    });
+  });
+
+  const generatedOptions = Object.entries(optionsMap).map(([name, set], idx) => ({
+    id: `opt-${idx + 1}`,
+    product_id: savedProduct.id,
+    name,
+    sort_order: idx + 1,
+    values: Array.from(set).map((val, vIdx) => ({
+      id: `opt-val-${idx + 1}-${vIdx + 1}`,
+      option_id: `opt-${idx + 1}`,
+      value: val,
+      sort_order: vIdx + 1,
+    })),
+  }));
+
+  if (generatedOptions.length > 0) {
+    savedProduct.options = generatedOptions;
   }
 
   // Always sync to localStorage
