@@ -19,7 +19,7 @@ export default function PoliciesPage() {
             1. Nationwide Delivery & Dispatch
           </h2>
           <p className="text-xs text-foreground-secondary leading-relaxed font-light">
-            All orders are dispatched from Karachi via reputable courier partners (TCS, Leopards, and Trax). Standard delivery takes 2 to 4 business days across Pakistan. Free delivery is provided on orders over Rs. 3,000.
+            All orders are dispatched from Karachi via reputable courier partners (TCS, Leopards, and Trax). Standard delivery takes 2 to 4 business days across Pakistan. Delivery charges range from Rs. 100 to Rs. 300 subject to location, and are quoted at the time of order confirmation via WhatsApp.
           </p>
         </section>
 

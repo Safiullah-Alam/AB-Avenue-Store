@@ -50,21 +50,15 @@ export default function CheckoutPage() {
     country: "Pakistan",
   });
 
-  // Shipping Methods in Karachi
+  // Shipping Method
   const shippingMethods = [
     {
-      id: "north",
-      name: "North Karachi Delivery",
-      time: "1–2 Business Days (Free over Rs. 3,000)",
-      cost: 100,
-      freeThreshold: 3000,
-    },
-    {
-      id: "karachi",
-      name: "All Over Karachi Delivery",
-      time: "2–3 Business Days (Free over Rs. 5,000)",
-      cost: 200,
-      freeThreshold: 5000,
+      id: "standard",
+      name: "Standard Courier Delivery",
+      time: "2–4 Business Days (TCS / Leopards / Trax)",
+      cost: 0,
+      rangeText: "Rs. 100 – Rs. 300",
+      description: "Subject to location • Quoted on WhatsApp order confirmation",
     },
   ];
   const [selectedShippingMethod, setSelectedShippingMethod] = useState(shippingMethods[0]);
@@ -81,10 +75,8 @@ export default function CheckoutPage() {
       : appliedCoupon.discountFixed || 0
     : 0;
 
-  // Free shipping according to selected Karachi zone threshold
-  const isFreeShipping = subtotal >= selectedShippingMethod.freeThreshold;
-  const shippingCost = isFreeShipping ? 0 : selectedShippingMethod.cost;
-  const finalTotal = Math.max(0, subtotal - discountAmount) + shippingCost;
+  const shippingCost = 0;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -149,8 +141,8 @@ export default function CheckoutPage() {
           zip: shippingData.zip,
           country: shippingData.country,
         },
-        shipping_method: selectedShippingMethod.name,
-        shipping_cost: shippingCost,
+        shipping_method: "Standard Delivery (Rs. 100 - Rs. 300 quoted on WhatsApp)",
+        shipping_cost: 0,
         subtotal,
         discount_amount: discountAmount,
         tax_amount: 0,
@@ -164,8 +156,8 @@ export default function CheckoutPage() {
         tracking_carrier: "TCS Courier",
         notes:
           paymentMethod === "easypaisa"
-            ? `EasyPaisa transfer to 03238048183 (Safiullah). Sender phone: ${senderPhone.trim()}, TRX: ${trxId.trim()}`
-            : "Cash on Delivery Order",
+            ? `EasyPaisa to 03238048183 (Safiullah). Sender: ${senderPhone.trim()}, TRX: ${trxId.trim()}. Location: ${shippingData.city}. Delivery fee (Rs. 100-300) to be quoted on WhatsApp.`
+            : `Cash on Delivery. Destination: ${shippingData.city}. Delivery fee (Rs. 100-300) to be quoted on WhatsApp.`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         items: items.map((i) => ({
@@ -376,45 +368,37 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Delivery Option Selector */}
+                {/* Delivery Option Notice */}
                 <div className="pt-4 space-y-3">
                   <h3 className="caption-label text-foreground">Delivery Service</h3>
-                  <div className="space-y-2">
-                    {shippingMethods.map((m) => {
-                      const isMethodFree = subtotal >= m.freeThreshold;
-                      const cost = isMethodFree ? 0 : m.cost;
-                      return (
-                        <label
-                          key={m.id}
-                          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-                            selectedShippingMethod.id === m.id
-                              ? "border-accent bg-accent/5 ring-1 ring-accent"
-                              : "border-black/10 hover:border-black/20 bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="radio"
-                              name="shipping"
-                              checked={selectedShippingMethod.id === m.id}
-                              onChange={() => setSelectedShippingMethod(m)}
-                              className="text-accent focus:ring-accent"
-                            />
-                            <div>
-                              <p className="text-xs font-semibold text-foreground">{m.name}</p>
-                              <p className="text-[11px] text-foreground-secondary">{m.time}</p>
-                            </div>
-                          </div>
-                          <span className="text-xs font-semibold text-foreground">
-                            {cost === 0 ? (
-                              <span className="text-emerald-600 font-bold">FREE</span>
-                            ) : (
-                              formatCurrency(cost)
-                            )}
-                          </span>
-                        </label>
-                      );
-                    })}
+                  <div className="p-4 rounded-2xl border border-accent/20 bg-[#FFF9F5] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+                          <Truck className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">
+                            Standard Courier Delivery
+                          </p>
+                          <p className="text-[11px] text-foreground-secondary">
+                            2–4 Business Days across Pakistan (TCS / Leopards / Trax)
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-accent">
+                        Rs. 100 – Rs. 300
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-black/5 text-xs text-foreground-secondary space-y-1">
+                      <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
+                        <span>💬 Quoted via WhatsApp:</span>
+                      </p>
+                      <p className="text-[11px] leading-relaxed">
+                        Delivery charges range between <strong>Rs. 100 to Rs. 300</strong> depending on your exact location. Once you submit this order, our team will message you on WhatsApp to confirm your items and quote the delivery fee.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -763,17 +747,22 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className="flex justify-between text-foreground-secondary">
+              <div className="flex justify-between items-center text-foreground-secondary">
                 <span className="flex items-center gap-1.5">
                   <Truck className="w-3.5 h-3.5" /> Delivery
                 </span>
-                <span>{shippingCost === 0 ? "FREE" : formatCurrency(shippingCost)}</span>
+                <span className="text-accent font-semibold text-[11px]">
+                  Rs. 100 – Rs. 300 (Quoted on WhatsApp)
+                </span>
               </div>
 
               <div className="flex justify-between text-base font-semibold text-foreground pt-4 border-t border-black/5">
-                <span>Total Amount</span>
+                <span>Order Subtotal</span>
                 <span className="text-accent">{formatCurrency(finalTotal)}</span>
               </div>
+              <p className="text-[10px] text-foreground-secondary text-right">
+                + Delivery (Rs. 100 – Rs. 300) confirmed on WhatsApp
+              </p>
             </div>
           </div>
         </div>

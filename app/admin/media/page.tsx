@@ -23,6 +23,51 @@ export default function AdminMediaPage() {
   const [newUrl, setNewUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
 
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((f) => formData.append("files", f));
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const uploaded: string[] = data.urls || (data.url ? [data.url] : []);
+      const newItems = uploaded.map((url, i) => ({
+        id: "m-" + Date.now() + "-" + i,
+        url,
+        title: "Product Image " + (mediaList.length + i + 1),
+      }));
+
+      setMediaList([...newItems, ...mediaList]);
+      showToast({
+        type: "success",
+        title: "Uploaded to Supabase",
+        message: `${uploaded.length} new photos saved in Supabase storage!`,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      showToast({
+        type: "error",
+        title: "Upload Failed",
+        message: msg,
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const handleAddMedia = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl.trim()) return;
@@ -68,15 +113,39 @@ export default function AdminMediaPage() {
             Media Storage Library
           </h1>
           <p className="text-xs text-[#6B7280] mt-0.5">
-            Manage high-resolution photography stored on Supabase Storage buckets.
+            Manage photography stored directly on Supabase Storage (product-images bucket).
           </p>
         </div>
       </div>
 
-      {/* Upload Zone */}
-      <form onSubmit={handleAddMedia} className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-4">
-        <h3 className="font-serif text-base font-semibold text-[#111827]">
-          Attach New Media Asset
+      {/* Direct Device Upload Card */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => handleFileUpload(e.target.files)}
+        accept="image/*"
+        multiple
+        className="hidden"
+      />
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className="bg-white p-6 rounded-3xl border-2 border-dashed border-black/15 hover:border-accent hover:bg-accent/5 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2"
+      >
+        <p className="text-sm font-semibold text-foreground">
+          {isUploading ? "Uploading photos to Supabase..." : "Tap or Click to Upload Photos from Phone or PC"}
+        </p>
+        <p className="text-xs text-[#6B7280]">
+          Photos will be uploaded directly into the Supabase product-images bucket.
+        </p>
+        <Button size="sm" variant="outline" className="mt-1 pointer-events-none bg-white">
+          Browse Images
+        </Button>
+      </div>
+
+      {/* Manual URL Form */}
+      <form onSubmit={handleAddMedia} className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-3">
+        <h3 className="font-serif text-sm font-semibold text-[#111827]">
+          Or Register External Public URL
         </h3>
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -92,10 +161,9 @@ export default function AdminMediaPage() {
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
             className="flex-1 text-xs px-4 py-2.5 rounded-xl border border-black/10 focus:outline-none"
-            required
           />
-          <Button type="submit" size="sm" shimmer>
-            Register Asset
+          <Button type="submit" size="sm" variant="secondary">
+            Register URL
           </Button>
         </div>
       </form>

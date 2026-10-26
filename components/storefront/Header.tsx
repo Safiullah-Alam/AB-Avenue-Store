@@ -317,13 +317,13 @@ export function Header() {
               </button>
             </div>
 
-            {/* Free Delivery Banner */}
+            {/* Delivery Charges Banner */}
             <div className="my-3 p-3 rounded-2xl bg-accent/5 border border-accent/15 text-xs text-foreground">
               <p className="font-bold text-accent flex items-center gap-1.5 mb-0.5">
-                <span>🚚 Free Delivery Available</span>
+                <span>🚚 Delivery Rs. 100 – Rs. 300</span>
               </p>
               <p className="text-[11px] text-foreground-secondary">
-                Free in <strong>North Karachi</strong> on Rs. 3,000+ & across <strong>Karachi</strong> on Rs. 5,000+!
+                Subject to location. Delivery charges will be quoted on WhatsApp order confirmation.
               </p>
             </div>
 

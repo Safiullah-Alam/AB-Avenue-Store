@@ -466,7 +466,7 @@ export default function ProductDetailPage() {
             <div className="grid grid-cols-3 gap-2 pt-4 border-t border-black/5 text-center text-[11px] text-foreground-secondary">
               <div className="flex flex-col items-center gap-1">
                 <Truck className="w-4 h-4 text-accent" />
-                <span>Complimentary Delivery</span>
+                <span>Delivery Rs. 100–300</span>
               </div>
               <div className="flex flex-col items-center gap-1">
                 <Shield className="w-4 h-4 text-accent" />
@@ -582,13 +582,13 @@ export default function ProductDetailPage() {
                     className="overflow-hidden pt-3 text-xs text-foreground-secondary space-y-2 leading-relaxed"
                   >
                     <p>
-                      <strong>Domestic:</strong> Complimentary 2-day priority tracked delivery on all orders above $250.
+                      <strong>Delivery Charges:</strong> Rs. 100 to Rs. 300 subject to location, quoted and confirmed with you on WhatsApp upon order confirmation.
                     </p>
                     <p>
-                      <strong>Global:</strong> Dispatched with DHL Express Worldwide with complete insurance coverage against loss or damage.
+                      <strong>Dispatch:</strong> Delivered in 2–4 business days across Pakistan via reputable courier partners (TCS, Leopards, Trax).
                     </p>
                     <p>
-                      <strong>Returns:</strong> 30-day trial window. Complimentary return shipping label included in the collector case.
+                      <strong>Exchange:</strong> 7-day hassle-free size replacement support via WhatsApp at 03238048183.
                     </p>
                   </motion.div>
                 )}

@@ -13,7 +13,7 @@ export const initialSiteSettings: SiteSettings = {
   tax_rate: 0,
   tax_inclusive: true,
   announcement_bar_active: true,
-  announcement_bar_text: "🎉 Free delivery in North Karachi over Rs. 3,000 & all over Karachi over Rs. 5,000! Cash on Delivery & EasyPaisa accepted.",
+  announcement_bar_text: "🚚 Delivery Rs. 100 to Rs. 300 (Subject to location • Quoted on WhatsApp order confirmation) | COD & EasyPaisa Accepted",
   announcement_bar_link: "/products",
   announcement_bar_color: "#E8567F",
   social_instagram: "https://instagram.com/abavenue.pk",

@@ -77,6 +77,13 @@ function ConfirmationContent() {
           </div>
 
           <div className="flex justify-between items-center pb-3 border-b border-black/5">
+            <span className="text-foreground-secondary">Delivery Charges</span>
+            <span className="font-semibold text-accent">
+              Rs. 100 – Rs. 300 (Quoted on WhatsApp)
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center pb-3 border-b border-black/5">
             <span className="text-foreground-secondary">Payment Mode</span>
             <span className="font-semibold text-foreground">
               {isCOD ? "Cash on Delivery (COD)" : "EasyPaisa Mobile Account"}
@@ -94,7 +101,7 @@ function ConfirmationContent() {
 
           {order && (
             <div className="flex justify-between items-center">
-              <span className="text-foreground-secondary">Total Settled</span>
+              <span className="text-foreground-secondary">Items Subtotal</span>
               <span className="font-semibold text-accent text-sm">
                 {formatCurrency(order.total)}
               </span>
@@ -103,23 +110,23 @@ function ConfirmationContent() {
         </div>
 
         {/* WhatsApp Confirmation Box */}
-        <div className="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-xs text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
-            <p className="font-semibold text-emerald-950">
-              Want instant WhatsApp confirmation?
+        <div className="mb-8 p-5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-xs text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <p className="font-bold text-emerald-950 text-sm">
+              Confirm Your Order via WhatsApp
             </p>
-            <p className="text-emerald-800 text-[11px] mt-0.5">
-              Send your order ID or screenshot to <strong>03238048183</strong> (Safiullah) for priority dispatch.
+            <p className="text-emerald-800 text-[11px] leading-relaxed">
+              We will contact you on WhatsApp to confirm your items and quote the exact delivery charges <strong>(Rs. 100 to Rs. 300)</strong> based on your location. You can also tap below to message us immediately!
             </p>
           </div>
           <a
-            href={`https://wa.me/923238048183?text=Salam%20Safiullah,%20I%20have%20placed%20order%20${orderId}%20on%20AB%20Avenue.`}
+            href={`https://wa.me/923238048183?text=Salam%20Safiullah,%20I%20have%20placed%20order%20${orderId}%20on%20AB%20Avenue.%20Please%20confirm%20my%20order%20and%20quote%20delivery%20charges.`}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 whitespace-nowrap shadow-sm transition-colors"
+            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-2 whitespace-nowrap shadow-sm transition-colors self-stretch sm:self-auto justify-center"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>WhatsApp Us</span>
+            <span>Confirm on WhatsApp</span>
           </a>
         </div>
 

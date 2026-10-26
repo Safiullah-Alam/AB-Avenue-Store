@@ -10,7 +10,7 @@ import { CartDrawer } from "@/components/storefront/CartDrawer";
 export const metadata: Metadata = {
   title: "AB Avenue | Adorable Children's Fashion — Karachi",
   description:
-    "Shop the cutest children's clothing in Karachi. From party dresses to everyday essentials — AB Avenue brings joy to your little one's wardrobe. Free delivery across Karachi!",
+    "Shop the cutest children's clothing in Karachi. From party dresses to everyday essentials — AB Avenue brings joy to your little one's wardrobe. Reliable delivery across Pakistan with WhatsApp order confirmation.",
   icons: {
     icon: [
       { url: "/ab-avenue-logo.jpg" },

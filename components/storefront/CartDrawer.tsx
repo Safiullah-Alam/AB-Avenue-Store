@@ -59,19 +59,13 @@ export function CartDrawer() {
     setCouponCode("");
   };
 
-  const [deliveryArea, setDeliveryArea] = useState<"north" | "karachi">("north");
-
   const discountAmount = appliedCoupon
     ? appliedCoupon.discountPercent
       ? (subtotal * appliedCoupon.discountPercent) / 100
       : appliedCoupon.discountFixed || 0
     : 0;
 
-  const freeThreshold = deliveryArea === "north" ? 3000 : 5000;
-  const isFreeDelivery = subtotal >= freeThreshold;
-  const deliveryFee = items.length === 0 ? 0 : isFreeDelivery ? 0 : deliveryArea === "north" ? 100 : 200;
-  const amountNeededForFree = Math.max(0, freeThreshold - subtotal);
-  const finalTotal = Math.max(0, subtotal - discountAmount) + deliveryFee;
+  const finalTotal = Math.max(0, subtotal - discountAmount);
 
   return (
     <AnimatePresence>
@@ -277,71 +271,20 @@ export function CartDrawer() {
                   <p className="text-xs text-destructive font-medium">{couponError}</p>
                 )}
 
-                {/* Delivery Location Selector */}
-                <div className="p-3 rounded-2xl bg-[#F8F8F8] border border-black/5 space-y-2">
+                {/* Delivery Information Notice */}
+                <div className="p-3 rounded-2xl bg-[#FFF9F5] border border-accent/15 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <Truck className="w-3.5 h-3.5 text-accent" />
-                      Delivery Destination:
+                      Delivery Charges:
                     </span>
-                    <span className="text-[11px] font-bold text-accent">
-                      {isFreeDelivery ? "FREE" : formatCurrency(deliveryFee)}
+                    <span className="text-xs font-bold text-accent">
+                      Rs. 100 – Rs. 300
                     </span>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryArea("north")}
-                      className={`p-2 rounded-xl text-left border transition-all ${
-                        deliveryArea === "north"
-                          ? "border-accent bg-accent/10 font-semibold text-foreground"
-                          : "border-black/5 bg-white text-foreground-secondary hover:border-black/20"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>North Karachi</span>
-                        <span className="text-[10px] font-bold">Rs. 100</span>
-                      </div>
-                      <span className="text-[10px] text-foreground-secondary block">
-                        Free on Rs. 3,000+
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryArea("karachi")}
-                      className={`p-2 rounded-xl text-left border transition-all ${
-                        deliveryArea === "karachi"
-                          ? "border-accent bg-accent/10 font-semibold text-foreground"
-                          : "border-black/5 bg-white text-foreground-secondary hover:border-black/20"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>All Karachi</span>
-                        <span className="text-[10px] font-bold">Rs. 200</span>
-                      </div>
-                      <span className="text-[10px] text-foreground-secondary block">
-                        Free on Rs. 5,000+
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Free delivery prompt */}
-                  {items.length > 0 && (
-                    <div className="pt-1">
-                      {isFreeDelivery ? (
-                        <p className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          🎉 You have unlocked FREE Delivery!
-                        </p>
-                      ) : (
-                        <p className="text-[11px] text-foreground-secondary">
-                          Add <strong>{formatCurrency(amountNeededForFree)}</strong> more for <strong>FREE Delivery</strong> in {deliveryArea === "north" ? "North Karachi" : "Karachi"}!
-                        </p>
-                      )}
-                    </div>
-                  )}
+                  <p className="text-[11px] text-foreground-secondary leading-snug">
+                    Subject to location. Exact delivery charges will be confirmed with you via WhatsApp when we process your order.
+                  </p>
                 </div>
 
                 {/* Subtotals breakdown */}
@@ -356,16 +299,19 @@ export function CartDrawer() {
                       <span className="font-semibold">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span>Delivery Charges ({deliveryArea === "north" ? "North Karachi" : "All Karachi"})</span>
-                    <span className="font-semibold text-foreground">
-                      {deliveryFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatCurrency(deliveryFee)}
+                  <div className="flex justify-between items-center">
+                    <span>Delivery</span>
+                    <span className="font-semibold text-accent text-[11px]">
+                      Rs. 100 – Rs. 300 (Quoted on WhatsApp)
                     </span>
                   </div>
                   <div className="flex justify-between text-sm font-semibold text-foreground pt-2 border-t border-black/5">
-                    <span>Estimated Total</span>
+                    <span>Order Subtotal</span>
                     <span className="text-base text-accent">{formatCurrency(finalTotal)}</span>
                   </div>
+                  <p className="text-[10px] text-foreground-secondary text-right">
+                    + Delivery fee quoted on WhatsApp
+                  </p>
                 </div>
 
                 {/* Checkout CTA */}
