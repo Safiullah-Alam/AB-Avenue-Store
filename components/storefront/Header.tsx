@@ -95,6 +95,8 @@ export function Header() {
                   src="/ab-avenue-logo.jpg"
                   alt="AB Avenue"
                   fill
+                  priority
+                  sizes="36px"
                   className="rounded-md object-contain"
                 />
               </div>

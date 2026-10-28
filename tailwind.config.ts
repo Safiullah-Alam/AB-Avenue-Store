@@ -12,7 +12,7 @@ const config: Config = {
         background: "#FFF9F5",
         "background-secondary": "#FFF0E8",
         foreground: "#2D2A26",
-        "foreground-secondary": "#7A7067",
+        "foreground-secondary": "#5A524A",
         accent: {
           DEFAULT: "#E8567F",
           hover: "#D94470",
@@ -32,8 +32,8 @@ const config: Config = {
         card: "#FFFFFF",
       },
       fontFamily: {
-        sans: ["Nunito", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        serif: ["Playfair Display", "Georgia", "serif"],
+        sans: ["var(--font-nunito)", "Nunito", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        serif: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"],
       },
       boxShadow: {
         card: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",

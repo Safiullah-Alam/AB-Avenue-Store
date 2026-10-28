@@ -14,9 +14,10 @@ import { useToast } from "@/context/ToastContext";
 interface ProductCardProps {
   product: Product;
   onQuickView?: (product: Product) => void;
+  priority?: boolean;
 }
 
-export function ProductCard({ product, onQuickView }: ProductCardProps) {
+export function ProductCard({ product, onQuickView, priority = false }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { showToast } = useToast();
@@ -107,21 +108,20 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
               src={primaryImage}
               alt={product.title}
               fill
+              priority={priority}
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 320px"
               className="object-cover object-center"
             />
           </motion.div>
 
-          {/* Secondary Lifestyle Image crossfade */}
-          {secondaryImage !== primaryImage && (
+          {/* Secondary Lifestyle Image crossfade (only rendered on hover to save mobile data & speed up LCP) */}
+          {isHovered && secondaryImage !== primaryImage && (
             <motion.div
-              animate={{
-                scale: isHovered ? 1.05 : 1,
-                opacity: isHovered ? 1 : 0,
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, scale: 1.05 }}
               transition={{
                 scale: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-                opacity: { duration: 0.4 },
+                opacity: { duration: 0.3 },
               }}
               className="absolute inset-0 w-full h-full"
             >
